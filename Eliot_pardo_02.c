@@ -148,66 +148,53 @@ void SJF(){
 }
 
 void SRT(){
-  int count=0;
-  int min_remaining_time;
-  int min_index;
-  int curr_cycle=0;
-  int done_flag;
 
-  // for each process, reset "done", "total_remaining" and "already_started" fields to 0 
   for (int i = 0; i < num_processes; i++){
     table_ptr[i].done = 0;
     table_ptr[i].started = 0;
     table_ptr[i].total_remain = table_ptr[i].total_cycles;
   }
 
-  // while there are still processes to schedule
-  while (count < num_processes){
-    // initilize the lowest total remaining time to INT_MAX (largest integer value)
-    min_remaining_time = INT_MAX;
-    done_flag=0;
-    
-    // for each process not yet scheduled
-    for (int i = 0; i < num_processes; i++){
-      // check if process has shorter remaining time than current shortest and update 
-      if (table_ptr[i].done == 0){
-        if ((table_ptr[i].total_remain < min_remaining_time) && (table_ptr[i].arrival <= curr_cycle)){
-          min_remaining_time = table_ptr[i].total_remain;
-          min_index = i;
-          done_flag = 1;
-        } 
-      }
-    }
+  int current_time = 0;
+  int completed = 0;
+  int prev = 0;
 
-    // check if process already partially-scheduled
-    if (done_flag == 0){
-      curr_cycle++;
-    } else {
-      if (table_ptr[min_index].started == 0){
-        // if so, set "start time", "already_started" fields of process with lowest (and available) total remaining cycle time
-        table_ptr[min_index].started = 1;
-        table_ptr[min_index].start_time = max(curr_cycle, table_ptr[min_index].arrival);
-        table_ptr[min_index].end_time = table_ptr[min_index].start_time+1;
-        table_ptr[min_index].turnaround = table_ptr[min_index].end_time - table_ptr[min_index].arrival;
-      } else {
-        // set end time, turnaround time of process with lowest (and available) total remaining cycle time
-        table_ptr[min_index].end_time = table_ptr[min_index].start_time+1;
-        table_ptr[min_index].turnaround = table_ptr[min_index].end_time - table_ptr[min_index].arrival;
+  while(completed != num_processes){
+      int min_index = -1;
+      int min_remaining_time = INT_MAX;
+      for(int i = 0; i < num_processes; i++){
+        if(table_ptr[i].arrival <= current_time && table_ptr[i].done == 0){
+          if(table_ptr[i].total_remain < min_remaining_time){
+              min_remaining_time = table_ptr[i].total_remain;
+              min_index = i;
+          }
+          if(table_ptr[i].total_remain == min_remaining_time){
+            if(table_ptr[i].arrival < table_ptr[min_index].arrival){
+              min_remaining_time = table_ptr[i].total_remain;
+              min_index = i;
+            }
+          }
+        }
+      }
+
+      if(min_index != -1){
+        if(table_ptr[min_index].total_remain == table_ptr[min_index].total_cycles){
+          table_ptr[min_index].start_time = current_time;
+        }
         table_ptr[min_index].total_remain--;
-      }
-
-      // decrement total remaining time of process with lowest (and available) total remaining cycle time
-      // table_ptr[min_index].total_remain--;
-
-      if (table_ptr[min_index].total_remain == 0){
-        table_ptr[min_index].done = 1;
-        count++;
-        curr_cycle++;
-      }
-    }
-    
-  }
-
+        current_time++;
+        prev = current_time;
+          
+        if(table_ptr[min_index].total_remain == 0){
+          table_ptr[min_index].end_time = current_time;
+          table_ptr[min_index].turnaround = table_ptr[min_index].end_time - table_ptr[min_index].arrival;
+          table_ptr[min_index].done = 1;
+          completed++;
+        }
+      }else{
+        current_time++;
+      }  
+}
   print();
   
   return;
