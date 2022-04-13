@@ -44,7 +44,7 @@ void printBlocks(){
 
   // print each block in list with while-loop, loop until end of list, advancing "current block" pointer
   while (curr_node != NULL){
-    printf("\t%d\t%d\t%d", curr_node->id,curr_node->start_address, curr_node->end_address);
+    printf("\t%d\t%d\t%d", curr_node->id, curr_node->start_address, curr_node->end_address);
     curr_node = curr_node->link;
   }
 
@@ -75,16 +75,15 @@ void allocateFirstFit(){ // option #2
   
 	// allocate memory for new block, set block id
   new_block = (block_type *)malloc(sizeof(block_type));
+  new_block->id = block_ID;
 
 	// if block list is "empty", set fields for new block, link to block list, reduce remaining memory, return
-  if (block_ptr->link == NULL){
-    new_block->id = block_ID;
+  if (block_ptr->link == NULL){    
     new_block->start_address = block_ptr->end_address;
     new_block->end_address = block_ptr->start_address+block_size;
     new_block->link = NULL;
     block_ptr->link = new_block;
     remaining_memory -= block_size;
-
     return;
   }
   
@@ -95,11 +94,14 @@ void allocateFirstFit(){ // option #2
       printf("Duplicates not allowed.");
       return;
     }
+    curr_node = curr_node->link;
+  }
 
+  curr_node = block_ptr;
+  while (curr_node != NULL){
     //set values for start and end of current hole
     hole_start = curr_node->end_address;
 
-    // if block fits in hole, set fields for new block, link to block list, reduce remaining memory, return
     if(curr_node->link == NULL){
       hole_end = pm_size;
     }else{
@@ -107,10 +109,25 @@ void allocateFirstFit(){ // option #2
     }
 
     hole_size = hole_end - hole_start;
-  }		
-						
-			// advance "current block" pointer		
-	// if end of list reached, print message no fitting hole	
+
+    // if block fits in hole, set fields for new block, link to block list, reduce remaining memory, return
+    if (block_size >= hole_size){
+      new_block->start_address = hole_start;
+      new_block->end_address = block_ptr->start_address+block_size;
+      new_block->link = curr_node->link;
+      curr_node->link = new_block;
+      remaining_memory -= block_size;
+      return;
+    }
+
+    // advance "current block" pointer	
+    curr_node = curr_node->link;    
+  }
+				
+	// if end of list reached, print message no fitting hole
+  if(curr_node == NULL){
+    printf("No dice");
+  }
 
   return;
 }
@@ -119,56 +136,154 @@ void allocateBestFit(){ // option #3
 
   int block_ID;
   int block_size;
+  int hole_start;
+  int hole_end;
+  int hole_size;
+  int best_hole = pm_size;
+  int best_start;
+  int at_least_one = 0;
+  block_type* best_block_ptr;
   block_type* new_block;
+  block_type* curr_node = block_ptr; // initialize "current block" to compare hole
 
   // prompt for block id & block size
   printf("Enter block ID: ");
   scanf("%d", &block_ID);
   printf("Enter block size: ");
   scanf("%d", &block_size);
-
+  
 	// if block size is larger than remaining memory, print message, return
   if (block_size > remaining_memory){
     printf("Not enough memory.");
     return;
   }
-
+  
 	// allocate memory for new block, set block id
   new_block = (block_type *)malloc(sizeof(block_type));
+  new_block->id = block_ID;
 
 	// if block list is "empty", set fields for new block, link to block list, reduce remaining memory, return
-	// initialize "current block" to compare hole
-	// while not end of list, loop
-		//if duplicate id, print message, returnxt_block = block_list;
- 		//set values for start and end of current hole
-		// if block fits in hole, 
-			// set flag "at least one" fitting hole found
-			// if current hole is smaller than best so far
-				// set new value for "best so far", "best start", copy "best block" to current block		
-		//advance "current block" pointer
-    	// if no hole was found large enough, print message, return
-	// set fields for new block, link to block list, reduce remaining memory
+  if (block_ptr->link == NULL){    
+    new_block->start_address = block_ptr->end_address;
+    new_block->end_address = block_ptr->start_address+block_size;
+    new_block->link = NULL;
+    block_ptr->link = new_block;
+    remaining_memory -= block_size;
+    return;
+  }
   
-  return;
+	// while not end of list, loop
+  while (curr_node != NULL){
+    //if duplicate id, print message, return
+    if (block_ID == curr_node){
+      printf("Duplicates not allowed.");
+      return;
+    }
+    curr_node = curr_node->link;
+  }
+
+  curr_node = block_ptr;
+  while (curr_node != NULL){
+    //set values for start and end of current hole
+    hole_start = curr_node->end_address;
+
+    if(curr_node->link == NULL){
+      hole_end = pm_size;
+    }else{
+      hole_end = curr_node->link->start_address;
+    }
+
+    hole_size = hole_end - hole_start;
+
+    // if block fits in hole, set fields for new block, link to block list, reduce remaining memory, return
+    if (block_size <= hole_size){
+      // set flag "at least one" fitting hole found
+      at_least_one = 1;
+
+      // if current hole is smaller than best so far
+      // set new value for "best so far", "best start", copy "best block" to current block
+      if (hole_size < best_hole){
+        best_hole = hole_size;
+        best_start = hole_start;
+        best_block_ptr = curr_node;
+      }
+      
+      return;
+    }
+
+    // advance "current block" pointer	
+    curr_node = curr_node->link;    
+  }
+
+  // if no hole was found large enough, print message, return
+  if(at_least_one == 0){
+    printf("No dice");
+    return;
+  }
+
+  // set fields for new block, link to block list, reduce remaining memory
+  new_block->start_address = best_start;
+  new_block->end_address = block_ptr->start_address+block_size;
+  new_block->link = best_block_ptr->link;
+  best_block_ptr->link = new_block;
+  remaining_memory -= block_size;  
+
+  return;  
 }
 
 void deallocate(){ // option #4
-  
+  int block_ID;
+  int block_size;
+
   // prompt for block id
-	// initialize "current block"
+  printf("Enter block ID: ");
+  scanf("%d", &block_ID);
+
+	// initialize "current block" to head of list
+  block_type* new_block;
+  block_type* prev_node;
+  block_type* curr_node = block_ptr;
+
 	// while id not found and end of block list not reached
-		// advance "previous block" pointer and "current block" pointer
+  while ((curr_node != NULL) && (block_ID != curr_node->id)){
+    // advance "previous block" pointer and "current block" pointer
+    prev_node = curr_node;
+    block_size = curr_node->end_address-curr_node->start_address;
+    curr_node = curr_node->link;
+  }  
+		
 	// if "current block" is NULL, print message id not found
-	// else remove block, adjusting "previous block" pointer around it, increment remaining memory with block size, free block with matching id
+  if(curr_node == NULL){
+    printf("No dice.");
+    return;
+  // else remove block, adjusting "previous block" pointer around it, 
+  // increment remaining memory with block size, free block with matching id
+  }else{
+    prev_node->link = curr_node->link;
+    remaining_memory += block_size;
+    free(curr_node);
+  }
 
   return;
 }
 
 void defrag(){ // option #5
-  
-  // initialize "current block"
+  int prev_node_end = 0;
+  int curr_size;
+
+  // initialize "current block" to head of list
+  block_type* new_block;
+  block_type* curr_node = block_ptr;
+
 	// while end of block list not reached
-		// adjust start and end fields of each block, compacting together
+  // adjust start and end fields of each block, compacting together
+  while (curr_node != NULL){
+    curr_size = curr_node->end_address-curr_node->start_address;
+    curr_node->start_address = prev_node_end;
+    curr_node->end_address = curr_node->start_address+curr_size;
+    prev_node_end = curr_node->end_address;
+    curr_node = curr_node->link;
+  }
 
   return;
 }
