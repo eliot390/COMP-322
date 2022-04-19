@@ -40,11 +40,11 @@ void printBlocks(){
 
   // print header of table containing fields: ID, Start, End
   printf("\nID\tStart\tEnd\n");
-  printf("----------------");
+  printf("-------------------\n");
 
   // print each block in list with while-loop, loop until end of list, advancing "current block" pointer
   while (curr_node != NULL){
-    printf("\t%d\t%d\t%d", curr_node->id, curr_node->start_address, curr_node->end_address);
+    printf("%d\t%d\t%d\n", curr_node->id, curr_node->start_address, curr_node->end_address);
     curr_node = curr_node->link;
   }
 
@@ -69,7 +69,7 @@ void allocateFirstFit(){ // option #2
   
 	// if block size is larger than remaining memory, print message, return
   if (block_size > remaining_memory){
-    printf("Not enough memory.");
+    printf("\nNot enough memory.\n");
     return;
   }
   
@@ -90,8 +90,8 @@ void allocateFirstFit(){ // option #2
 	// while not end of list, loop
   while (curr_node != NULL){
     //if duplicate id, print message, return
-    if (block_ID == curr_node){
-      printf("Duplicates not allowed.");
+    if (block_ID == curr_node->id){
+      printf("\nDuplicates not allowed.\n");
       return;
     }
     curr_node = curr_node->link;
@@ -126,7 +126,7 @@ void allocateFirstFit(){ // option #2
 				
 	// if end of list reached, print message no fitting hole
   if(curr_node == NULL){
-    printf("No dice");
+    printf("\nNo fitting hole.\n");
   }
 
   return;
@@ -154,7 +154,7 @@ void allocateBestFit(){ // option #3
   
 	// if block size is larger than remaining memory, print message, return
   if (block_size > remaining_memory){
-    printf("Not enough memory.");
+    printf("\nNot enough memory.\n");
     return;
   }
   
@@ -175,8 +175,8 @@ void allocateBestFit(){ // option #3
 	// while not end of list, loop
   while (curr_node != NULL){
     //if duplicate id, print message, return
-    if (block_ID == curr_node){
-      printf("Duplicates not allowed.");
+    if (block_ID == curr_node->id){
+      printf("\nDuplicates not allowed.\n");
       return;
     }
     curr_node = curr_node->link;
@@ -217,7 +217,7 @@ void allocateBestFit(){ // option #3
 
   // if no hole was found large enough, print message, return
   if(at_least_one == 0){
-    printf("No dice");
+    printf("\nNo hole found.\n");
     return;
   }
 
@@ -254,7 +254,7 @@ void deallocate(){ // option #4
 		
 	// if "current block" is NULL, print message id not found
   if(curr_node == NULL){
-    printf("No dice.");
+    printf("Block ID not found.\n");
     return;
   // else remove block, adjusting "previous block" pointer around it, 
   // increment remaining memory with block size, free block with matching id
@@ -319,15 +319,19 @@ int main(){
         break;
       case 2:
         allocateFirstFit();
+        printBlocks();
         break;
       case 3:
         allocateBestFit();
+        printBlocks();
         break;
       case 4:
         deallocate();
+        printBlocks();
         break;
       case 5:
         defrag();
+        printBlocks();
         break;
       case 6:
         quit();
