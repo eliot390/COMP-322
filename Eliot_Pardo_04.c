@@ -84,6 +84,7 @@ void allocateFirstFit(){ // option #2
     new_block->link = NULL;
     block_ptr->link = new_block;
     remaining_memory -= block_size;
+    printBlocks();
     return;
   }
   
@@ -111,12 +112,13 @@ void allocateFirstFit(){ // option #2
     hole_size = hole_end - hole_start;
 
     // if block fits in hole, set fields for new block, link to block list, reduce remaining memory, return
-    if (block_size >= hole_size){
+    if (block_size <= hole_size){
       new_block->start_address = hole_start;
-      new_block->end_address = block_ptr->start_address+block_size;
+      new_block->end_address = new_block->start_address+block_size;
       new_block->link = curr_node->link;
       curr_node->link = new_block;
       remaining_memory -= block_size;
+      printBlocks();
       return;
     }
 
@@ -169,6 +171,7 @@ void allocateBestFit(){ // option #3
     new_block->link = NULL;
     block_ptr->link = new_block;
     remaining_memory -= block_size;
+    printBlocks();
     return;
   }
   
@@ -207,8 +210,6 @@ void allocateBestFit(){ // option #3
         best_start = hole_start;
         best_block_ptr = curr_node;
       }
-      
-      return;
     }
 
     // advance "current block" pointer	
@@ -223,10 +224,11 @@ void allocateBestFit(){ // option #3
 
   // set fields for new block, link to block list, reduce remaining memory
   new_block->start_address = best_start;
-  new_block->end_address = block_ptr->start_address+block_size;
+  new_block->end_address = new_block->start_address+block_size;
   new_block->link = best_block_ptr->link;
   best_block_ptr->link = new_block;
-  remaining_memory -= block_size;  
+  remaining_memory -= block_size;
+  printBlocks();
 
   return;  
 }
@@ -292,7 +294,7 @@ void quit(){ //option #6
   if (block_ptr->link != NULL){
     free(block_ptr->link);
   }
-  printf("\n\nQuitting program...\n\n");
+  printf("\nQuitting program...\n\n");
 
   return;  
 }
@@ -302,7 +304,7 @@ int main(){
 
   do {
     printf("\nMemory Allocation\n");
-    printf("------------------\n");
+    printf("-----------------\n");
     printf("1) Enter Parameters\n");
     printf("2) Allocate memory for block using First-fit\n");
     printf("3) Allocate memory for block using Best-fit\n");
@@ -319,11 +321,9 @@ int main(){
         break;
       case 2:
         allocateFirstFit();
-        printBlocks();
         break;
       case 3:
         allocateBestFit();
-        printBlocks();
         break;
       case 4:
         deallocate();
